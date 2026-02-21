@@ -1,5 +1,12 @@
 app/
 models/
-__pycache__/
-*.pyc
 whisper_cache
+.git
+.gitignore
+.env
+.env.*
+__pycache__
+*.pyc
+venv
+.idea
+.vscode
