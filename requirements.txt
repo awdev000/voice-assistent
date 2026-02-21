@@ -1,0 +1,8 @@
+faster-whisper
+sounddevice
+numpy
+openai
+python-dotenv
+scipy
+watchdog
+requests

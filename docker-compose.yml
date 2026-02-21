@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  assistant:
+    build: .
+    container_name: voice_assistant
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - HF_TOKEN=${HF_TOKEN}
+    devices:
+      - "/dev/snd:/dev/snd"
+    group_add:
+      - audio
+    privileged: true
+    volumes:
+      - ./app:/app
+      - ./models:/models
+      - whisper_cache:/root/.cache
+    stdin_open: true
+    tty: true
+
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    restart: unless-stopped
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+
+volumes:
+  whisper_cache:
+  ollama_data:

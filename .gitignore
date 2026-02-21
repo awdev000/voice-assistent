@@ -1,0 +1,5 @@
+models/
+app/__pycache__/
+app/models/
+app/core
+.env
