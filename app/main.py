@@ -1,39 +1,60 @@
-from faster_whisper import WhisperModel
-from audio import record_audio
-from ai import ask_ai
-from tts import speak
-from config import WHISPER_MODEL
+import logging
 
-# Создаём модель Whisper с оптимизацией под Raspberry
-model = WhisperModel(
-    WHISPER_MODEL,
-    device="cpu",
-    compute_type="int8",  # экономия памяти
-    cpu_threads=4         # не перегружаем систему
+from ai import AIEngine
+from audio import MicrophoneRecorder
+from config import ENABLED_SKILLS, SKILLS_ENABLED, WHISPER_MODEL
+from core.interfaces import AIHandler, Recorder, Speaker, Transcriber
+from core.router import Router
+from modules.registry import build_skills
+from stt import WhisperTranscriber
+from tts import PiperSpeaker
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
 )
+logger = logging.getLogger(__name__)
 
-def transcribe(audio):
-    segments, _ = model.transcribe(audio)
-    text = " ".join([seg.text for seg in segments])
-    return text
 
-while True:
-    audio = record_audio()
+def build_router(ai_handler: AIHandler) -> Router:
+    skills = build_skills(enabled=SKILLS_ENABLED, selected=ENABLED_SKILLS)
+    return Router(skills=skills, ai_handler=ai_handler)
 
-    segments, _ = model.transcribe(
-        audio,
-        beam_size=1,
-        vad_filter=True
+
+def run_voice_loop(
+    recorder: Recorder,
+    transcriber: Transcriber,
+    router: Router,
+    speaker: Speaker,
+) -> None:
+    while True:
+        audio = recorder()
+        text = transcriber(audio)
+        logger.info("User said: %s", text)
+
+        if not text:
+            continue
+
+        answer = router.route(text)
+        logger.info("Assistant answer: %s", answer)
+        speaker(answer)
+
+
+def main() -> None:
+    recorder = MicrophoneRecorder()
+    transcriber = WhisperTranscriber(model_name=WHISPER_MODEL)
+    ai_engine = AIEngine()
+    speaker = PiperSpeaker()
+    router = build_router(ai_handler=ai_engine.ask)
+    logger.info("Voice assistant started")
+    run_voice_loop(
+        recorder=recorder,
+        transcriber=transcriber,
+        router=router,
+        speaker=speaker,
     )
 
-    text = " ".join([seg.text for seg in segments])
-    
-    print("Вы сказали:", text)
 
-    if not text.strip():
-        continue
-
-    answer = ask_ai(text)
-
-    print("Ответ:", answer)
-    speak(answer)
+if __name__ == "__main__":
+    main()
