@@ -6,6 +6,7 @@ from config import ENABLED_SKILLS, SKILLS_ENABLED, WHISPER_MODEL
 from core.interfaces import AIHandler, Recorder, Speaker, Transcriber
 from core.router import Router
 from modules.registry import build_skills
+from runtime_state import runtime_state
 from stt import WhisperTranscriber
 from tts import PiperSpeaker
 
@@ -15,6 +16,7 @@ logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
 )
 logger = logging.getLogger(__name__)
+runtime_state.attach_logger()
 
 
 def build_router(ai_handler: AIHandler) -> Router:

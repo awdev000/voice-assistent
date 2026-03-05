@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   assistant:
     build: .
@@ -20,6 +18,23 @@ services:
       - whisper_cache:/root/.cache
     stdin_open: true
     tty: true
+
+  control_plane:
+    build: .
+    container_name: voice_assistant_control_plane
+    restart: unless-stopped
+    env_file:
+      - .env
+    devices:
+      - "/dev/snd:/dev/snd"
+    group_add:
+      - audio
+    privileged: true
+    volumes:
+      - ./app:/app
+    ports:
+      - "8000:8000"
+    command: ["uvicorn", "control_plane:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
   ollama:
     image: ollama/ollama

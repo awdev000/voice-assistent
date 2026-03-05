@@ -8,9 +8,27 @@ audio:
 sample_rate: 16000
 
 ai:
-cloud_model: gpt-4o-mini
-local_model: tinyllama
-timeout: 120
+  mode: hybrid
+  cloud_enabled: true
+  local_enabled: true
+  cloud_model: gpt-4o-mini
+  local_model: tinyllama
 
-skills:
-enabled: true
+stt:
+  engine: whisper
+  model: small
+
+tts:
+  engine: piper
+  model: ru_RU-irina-medium.onnx
+
+features:
+  cloud_ai: true
+  local_fallback: true
+  local_only_mode: false
+  skills_engine: true
+  conversation_memory: false
+  wake_word: false
+  piper_tts: true
+  web_tts: false
+  debug_logging: false

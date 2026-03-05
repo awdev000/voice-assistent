@@ -1,0 +1,42 @@
+ai:
+  mode: hybrid
+  cloud_enabled: true
+  local_enabled: true
+  cloud_model: gpt-4o-mini
+  local_model: tinyllama
+  local_url: http://ollama:11434/api/generate
+stt:
+  engine: whisper
+  model: small
+tts:
+  engine: web
+  model: ru_RU-irina-medium.onnx
+features:
+  cloud_ai: true
+  local_fallback: true
+  local_only_mode: false
+  skills_engine: true
+  conversation_memory: false
+  wake_word: false
+  piper_tts: true
+  web_tts: false
+  debug_logging: false
+  skills: true
+  memory: false
+  enabled_skills:
+  - help
+roadmap:
+- component: Whisper STT
+  status: implemented
+- component: Skill Engine
+  status: in_progress
+- component: Wake Word
+  status: planned
+- component: Memory
+  status: experimental
+- component: Web Client
+  status: implemented
+- component: Legacy V1 Pipeline
+  status: deprecated
+- component: Local GPU Backend
+  status: disabled

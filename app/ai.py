@@ -1,4 +1,5 @@
 import logging
+import time
 
 import requests
 from openai import OpenAI
@@ -10,6 +11,7 @@ from config import (
     MODEL,
     OPENAI_API_KEY,
 )
+from runtime_state import runtime_state
 
 
 logger = logging.getLogger(__name__)
@@ -70,21 +72,50 @@ class AIEngine:
         return data.get("response", "Локальная модель не ответила.")
 
     def ask(self, text: str) -> str:
+        start = time.perf_counter()
         try:
             logger.info("Trying OpenAI")
-            return self.ask_openai(text)
+            answer = self.ask_openai(text)
+            runtime_state.record_request(
+                text=text,
+                answer=answer,
+                latency_ms=(time.perf_counter() - start) * 1000,
+                engine="cloud",
+            )
+            return answer
         except Exception as exc:
             logger.warning("OpenAI unavailable: %s", exc)
             if not self.local_llm_enabled:
                 logger.warning("Local LLM fallback disabled by config")
-                return "Сервис ИИ временно недоступен."
+                answer = "Сервис ИИ временно недоступен."
+                runtime_state.record_request(
+                    text=text,
+                    answer=answer,
+                    latency_ms=(time.perf_counter() - start) * 1000,
+                    engine="unavailable",
+                )
+                return answer
 
             try:
                 logger.info("Trying local LLM")
-                return self.ask_local_llm(text)
+                answer = self.ask_local_llm(text)
+                runtime_state.record_request(
+                    text=text,
+                    answer=answer,
+                    latency_ms=(time.perf_counter() - start) * 1000,
+                    engine="local",
+                )
+                return answer
             except Exception as local_exc:
                 logger.error("Local LLM unavailable: %s", local_exc)
-                return "Сервис ИИ временно недоступен."
+                answer = "Сервис ИИ временно недоступен."
+                runtime_state.record_request(
+                    text=text,
+                    answer=answer,
+                    latency_ms=(time.perf_counter() - start) * 1000,
+                    engine="unavailable",
+                )
+                return answer
 
 
 default_engine = AIEngine()

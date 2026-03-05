@@ -6,4 +6,8 @@ python-dotenv
 scipy
 watchdog
 requests
+PyYAML
+fastapi
+uvicorn
+python-multipart
 pytest
